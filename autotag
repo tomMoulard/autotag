@@ -1,3 +1,29 @@
 #!/bin/bash
 
-git tag -a "$(PREFIX)$(SUFFIXE)" -m ""
+PREFIX=$1
+SUFFIXE=""
+USAGE=""
+SUFF_FILE_URL="https://raw.githubusercontent.com/tomMoulard/autotag/master/suffixes.txt"
+NEW_TAG=""
+
+generate_suffixe() {
+    SUFFIXE=$(curl -s $SUFF_FILE_URL | shuf | sed "1 q")
+}
+
+if [ "$PREFIX" == "" ]; then
+    echo "You should provide a prefix";
+    echo "$USAGE";
+    exit 1;
+fi
+
+while :;do
+    generate_suffixe;
+    NEW_TAG="${PREFIX}-${SUFFIXE}"
+    #echo "Trying new tag: '$NEW_TAG'";
+    git show "$NEW_TAG" 2>/dev/null 1>/dev/null
+    if [ $? -ne 0 ];then 
+        break;
+    fi
+done
+
+git tag -a "$NEW_TAG" -m "$NEW_TAG"
